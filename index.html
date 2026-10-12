@@ -223,6 +223,39 @@
     Créer mon compte
   </button>
 </form>
+  
+<form id="resetPasswordForm" class="auth-form" hidden>
+  <h3>Créer un nouveau mot de passe</h3>
+
+  <label for="newPassword">
+    Nouveau mot de passe
+    <input
+      id="newPassword"
+      type="password"
+      minlength="6"
+      placeholder="6 caractères minimum"
+      required
+    >
+  </label>
+
+  <label for="confirmNewPassword">
+    Confirmer le nouveau mot de passe
+    <input
+      id="confirmNewPassword"
+      type="password"
+      minlength="6"
+      placeholder="Retape ton mot de passe"
+      required
+    >
+  </label>
+
+  <button class="btn primary" type="submit">
+    Enregistrer mon nouveau mot de passe
+  </button>
+
+  <p id="resetPasswordMessage" role="status"></p>
+</form>
+
 <button class="auth-toggle" id="authToggle">J’ai déjà un compte → Se connecter</button>
 <p class="note">Version prototype : les comptes sont enregistrés uniquement dans ce navigateur. La connexion sécurisée en ligne sera ajoutée avec notre base de données.</p>
 </div></div>
