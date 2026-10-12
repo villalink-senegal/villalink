@@ -1328,6 +1328,7 @@ const resetPasswordMessage = document.getElementById("resetPasswordMessage");
 if (resetPasswordForm) {
   resetPasswordForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+     event.stopPropagation();
 
     const newPassword = document.getElementById("newPassword").value;
     const confirmPassword = document.getElementById("confirmNewPassword").value;
@@ -1380,6 +1381,7 @@ window.supabaseClient?.auth.onAuthStateChange((event, session) => {
 
  authForm?.addEventListener("submit", async event => {
    event.preventDefault();
+       if (event.target !== authForm) return;
 
    const email = document.getElementById("email")?.value
      .trim().toLowerCase() || "";
