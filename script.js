@@ -1322,7 +1322,7 @@ forgotPasswordBtn?.addEventListener("click", async () => {
  // ===== RÉINITIALISATION DU MOT DE PASSE =====
 
 const resetPasswordForm = document.getElementById("resetPasswordForm");
-const authForm = document.getElementById("authForm");
+const resetAuthForm = document.getElementById("authForm");
 const resetPasswordMessage = document.getElementById("resetPasswordMessage");
 
 if (resetPasswordForm) {
@@ -1357,7 +1357,7 @@ if (resetPasswordForm) {
       resetPasswordForm.reset();
       resetPasswordForm.hidden = true;
 
-      if (authForm) authForm.hidden = false;
+     if (resetAuthForm) resetAuthForm.hidden = false;
     } catch (error) {
       console.error("Erreur nouveau mot de passe :", error);
       resetPasswordMessage.textContent =
@@ -1368,7 +1368,7 @@ if (resetPasswordForm) {
 
 window.supabaseClient?.auth.onAuthStateChange((event, session) => {
   if (event === "PASSWORD_RECOVERY" && session) {
-    if (authForm) authForm.hidden = true;
+   if (resetAuthForm) resetAuthForm.hidden = true;
     if (resetPasswordForm) resetPasswordForm.hidden = false;
   }
 });
