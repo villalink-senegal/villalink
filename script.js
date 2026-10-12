@@ -511,14 +511,23 @@ function openVilla(id) {
   }
 </div>
 
-<a ...>Contacter le propriétaire</a>
-        "Bonjour, je suis intéressé(e) par " +
-        villa.title +
-        " sur VillaLink."
-      )}"
-    >
-      Contacter le propriétaire
-    </a>
+
+<a
+  href="https://wa.me/${String(
+    villa.ownerPhone || ""
+  ).replace(/\D/g, "")}?text=${encodeURIComponent(
+    "Bonjour, je suis intéressé(e) par " +
+    villa.title +
+    " sur VillaLink."
+  )}"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="btn btn-primary"
+  style="display:inline-block;margin-top:16px;text-decoration:none"
+>
+  Contacter le propriétaire
+</a>
+
   `;
 
   let current = 0;
