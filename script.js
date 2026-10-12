@@ -1319,6 +1319,60 @@ forgotPasswordBtn?.addEventListener("click", async () => {
   }
 });
 
+ // ===== RÉINITIALISATION DU MOT DE PASSE =====
+
+const resetPasswordForm = document.getElementById("resetPasswordForm");
+const authForm = document.getElementById("authForm");
+const resetPasswordMessage = document.getElementById("resetPasswordMessage");
+
+if (resetPasswordForm) {
+  resetPasswordForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmNewPassword").value;
+
+    if (newPassword !== confirmPassword) {
+      resetPasswordMessage.textContent = "Les deux mots de passe ne correspondent pas.";
+      return;
+    }
+
+    if (!window.supabaseClient) {
+      resetPasswordMessage.textContent = "Connexion à Supabase impossible.";
+      return;
+    }
+
+    try {
+      resetPasswordMessage.textContent = "Enregistrement en cours...";
+
+      const { error } = await window.supabaseClient.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      resetPasswordMessage.textContent =
+        "Mot de passe modifié ! Tu peux maintenant te connecter.";
+
+      resetPasswordForm.reset();
+      resetPasswordForm.hidden = true;
+
+      if (authForm) authForm.hidden = false;
+    } catch (error) {
+      console.error("Erreur nouveau mot de passe :", error);
+      resetPasswordMessage.textContent =
+        "Erreur : " + error.message;
+    }
+  });
+}
+
+window.supabaseClient?.auth.onAuthStateChange((event, session) => {
+  if (event === "PASSWORD_RECOVERY" && session) {
+    if (authForm) authForm.hidden = true;
+    if (resetPasswordForm) resetPasswordForm.hidden = false;
+  }
+});
+
 
  // ===============================
  // CONNEXION / INSCRIPTION SUPABASE
