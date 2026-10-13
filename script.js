@@ -382,10 +382,20 @@ function render(list = allVillas()) {
 // DÉTAIL VILLA
 // ===============================
 
+
 function openVilla(id) {
-  const villa = allVillas().find(
+  const session = getSession();
+
+  const villasDisponibles =
+    session?.role === "admin"
+      ? [...DEFAULT_VILLAS, ...getCustom()]
+      : allVillas();
+
+  const villa = villasDisponibles.find(
     item => Number(item.id) === Number(id)
   );
+
+  if (!villa || !modalContent || !villaModal) return;
 
   if (!villa || !modalContent || !villaModal) return;
 
