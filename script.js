@@ -946,6 +946,50 @@ videoFiles?.addEventListener(
   }
 );
 
+async function uploadVillaMedia(dataUrl, category, index) {
+  const session = getSession();
+
+  if (!session || !session.id) {
+    throw new Error("Session utilisateur introuvable.");
+  }
+
+  if (!window.supabaseClient) {
+    throw new Error("Supabase n'est pas disponible.");
+  }
+
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+
+  const extension =
+    category === "photos"
+      ? "jpg"
+      : (blob.type.split("/")[1] || "mp4")
+          .split(";")[0];
+
+  const filePath =
+    `${session.id}/${Date.now()}-${category}-${index}.${extension}`;
+
+  const { error } = await window.supabaseClient
+    .storage
+    .from("villa-media")
+    .upload(filePath, blob, {
+      contentType: blob.type || "application/octet-stream",
+      upsert: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = window.supabaseClient
+    .storage
+    .from("villa-media")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+}
+
+
 // ===============================
 // FORMULAIRE PROPRIÉTAIRE
 // ===============================
