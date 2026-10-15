@@ -393,3 +393,41 @@
   font-size: 13px !important;
   white-space: normal !important;
 }
+
+/* ===============================
+   VILLALINK — DESIGN BLEU NUIT & OR
+   =============================== */
+
+:root {
+  --vl-navy: #071D36;
+  --vl-navy-light: #0B2B4D;
+  --vl-gold: #D8AE55;
+  --vl-gold-light: #F1D58B;
+  --vl-background: #F7F6F2;
+  --vl-white: #FFFFFF;
+  --vl-text: #102A46;
+  --vl-muted: #65758A;
+}
+
+body {
+  background-color: var(--vl-background);
+  color: var(--vl-text);
+}
+
+button,
+.btn,
+input[type="submit"] {
+  transition: background-color 0.2s ease,
+              color 0.2s ease,
+              border-color 0.2s ease;
+}
+
+button:hover,
+.btn:hover,
+input[type="submit"]:hover {
+  filter: brightness(1.06);
+}
+
+a {
+  transition: color 0.2s ease;
+}
