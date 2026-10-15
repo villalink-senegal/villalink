@@ -572,3 +572,27 @@ input[type="submit"]:hover {
   color: #FFFFFF;
   border-color: #071D36;
 }
+
+/* LOGO PRINCIPAL VILLALINK */
+
+.header .logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header .logo-image {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  height: 72px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (max-width: 600px) {
+  .header .logo-image {
+    width: 155px;
+    height: 55px;
+  }
+}
