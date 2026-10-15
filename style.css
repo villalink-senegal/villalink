@@ -431,3 +431,29 @@ input[type="submit"]:hover {
 a {
   transition: color 0.2s ease;
 }
+
+/* EN-TÊTE VILLALINK — BLEU NUIT & OR */
+
+.header {
+  background: #071D36;
+  color: #FFFFFF;
+  border-bottom: 1px solid rgba(216, 174, 85, 0.35);
+  box-shadow: 0 4px 18px rgba(7, 29, 54, 0.12);
+}
+
+.header .logo {
+  color: #FFFFFF;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.header .logo > span:last-child > span {
+  color: #D8AE55;
+}
+
+.header .logo-mark {
+  background: #D8AE55;
+  color: #071D36;
+  border-radius: 10px;
+}
+
