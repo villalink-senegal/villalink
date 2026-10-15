@@ -1071,112 +1071,135 @@ ownerForm?.addEventListener(
   updateOwnerPreview
 );
 
+
 ownerForm?.addEventListener(
   "submit",
-  event => {
+  async event => {
     event.preventDefault();
 
-    const data =
-      Object.fromEntries(
-        new FormData(event.target).entries()
-      );
+    const data = Object.fromEntries(
+      new FormData(event.target).entries()
+    );
 
     const session = getSession();
 
     if (!session) {
-      alert(
-        "Vous devez créer un compte ou vous connecter."
-      );
+      alert("Vous devez créer un compte ou vous connecter.");
       return;
     }
 
-    const amenities =
-      [...event.target.querySelectorAll(
-        'input[name="amenity"]:checked'
-      )].map(input => input.value);
+    const submitButton = event.target.querySelector(
+      'button[type="submit"]'
+    );
 
-    const images =
-      selectedPhotoDataList.length
-        ? [...selectedPhotoDataList]
-        : [
-            data.image ||
-            DEFAULT_VILLAS[0].image
-          ];
-    const videos =
-  selectedVideoDataList.length
-    ? [...selectedVideoDataList]
-    : [];
+    if (submitButton) submitButton.disabled = true;
 
-    const villa = {
-      id: Date.now(),
-      status: "attente",
-      title: data.title || "Nouvelle villa",
-      location: data.location || "",
-      price: Number(data.price || 0),
-      rooms: Number(data.rooms || 0),
-      phone: String(data.phone || "")
-        .replace(/\D/g, ""),
-      image: images[0],
-      images,
-      videos,
-      description: data.description || "",
-      amenities:
-        amenities.length
-          ? amenities
-          : ["Nouvelle annonce"],
-      ownerEmail: session.email,
-      ownerName: session.name || ""
-    };
+    try {
+      const amenities = [
+        ...event.target.querySelectorAll(
+          'input[name="amenity"]:checked'
+        )
+      ].map(input => input.value);
 
-    const villas = getCustom();
+      const images = [];
 
-    const editingId =
-      event.target.dataset.editingId;
+      if (selectedPhotoDataList.length) {
+        for (let i = 0; i < selectedPhotoDataList.length; i++) {
+          images.push(
+            await uploadVillaMedia(
+              selectedPhotoDataList[i],
+              "photos",
+              i
+            )
+          );
+        }
+      } else {
+        images.push(
+          data.image || DEFAULT_VILLAS[0].image
+        );
+      }
 
-    if (editingId) {
-      const index =
-        villas.findIndex(
+      const videos = [];
+
+      for (let i = 0; i < selectedVideoDataList.length; i++) {
+        videos.push(
+          await uploadVillaMedia(
+            selectedVideoDataList[i],
+            "videos",
+            i
+          )
+        );
+      }
+
+      const villas = getCustom();
+      const editingId = event.target.dataset.editingId;
+
+      const villa = {
+        id: editingId ? Number(editingId) : Date.now(),
+        status: "attente",
+        title: data.title || "Nouvelle villa",
+        location: data.location || "",
+        price: Number(data.price || 0),
+        rooms: Number(data.rooms || 0),
+        phone: String(data.phone || "").replace(/\D/g, ""),
+        image: images[0],
+        images,
+        videos,
+        description: data.description || "",
+        amenities: amenities.length ? amenities : ["Nouvelle annonce"],
+        ownerEmail: session.email,
+        ownerName: session.name || ""
+      };
+
+      if (editingId) {
+        const index = villas.findIndex(
           item =>
-            Number(item.id) ===
-              Number(editingId) &&
-            String(item.ownerEmail)
-              .toLowerCase() ===
-              String(session.email)
-                .toLowerCase()
+            Number(item.id) === Number(editingId) &&
+            String(item.ownerEmail).toLowerCase() ===
+              String(session.email).toLowerCase()
         );
 
-      if (index >= 0) {
+        if (index < 0) {
+          throw new Error("Annonce introuvable pour ce compte.");
+        }
+
         villa.id = villas[index].id;
         villas[index] = villa;
+      } else {
+        villas.push(villa);
       }
-    } else {
-      villas.push(villa);
+
+      saveCustom(villas);
+
+      delete event.target.dataset.editingId;
+      event.target.reset();
+
+      selectedPhotoData = "";
+      selectedPhotoDataList = [];
+      selectedVideoDataList = [];
+
+      if (photoPreview) photoPreview.innerHTML = "";
+      if (videoPreview) videoPreview.innerHTML = "";
+
+      updateOwnerPreview();
+      ownerModal?.classList.add("hidden");
+      render();
+
+      alert(
+        editingId
+          ? "Votre annonce a été modifiée."
+          : "Votre annonce a été envoyée. Elle est en attente de validation."
+      );
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la villa :", error);
+
+      alert(
+        "Impossible d'enregistrer votre annonce : " +
+        (error.message || "erreur inconnue")
+      );
+    } finally {
+      if (submitButton) submitButton.disabled = false;
     }
-
-    saveCustom(villas);
-
-    delete event.target.dataset.editingId;
-
-    event.target.reset();
-
-    selectedPhotoData = "";
-    selectedPhotoDataList = [];
-
-    if (photoPreview) {
-      photoPreview.innerHTML = "";
-    }
-
-    updateOwnerPreview();
-
-    ownerModal?.classList.add("hidden");
-
-    render();
-
-    alert(
-      editingId
-        ? "Votre annonce a été modifiée."
-        : "Votre annonce a été envoyée. Elle est en attente de validation."
-    );
   }
 );
 
