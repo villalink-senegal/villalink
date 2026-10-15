@@ -478,3 +478,29 @@ input[type="submit"]:hover {
   color: #071D36;
 }
 
+
+/* VILLALINK — CARTES BLEU NUIT & OR */
+
+.my-villa-card {
+  background: #FFFFFF;
+  border: 1px solid #E6D8B8;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(7, 29, 54, 0.08);
+  transition: box-shadow 0.2s ease,
+              transform 0.2s ease;
+}
+
+.my-villa-card:hover {
+  box-shadow: 0 12px 30px rgba(7, 29, 54, 0.14);
+  transform: translateY(-2px);
+}
+
+.my-villa-body h4 {
+  color: #071D36;
+}
+
+.my-villa-body .btn {
+  background: #D8AE55;
+  color: #071D36;
+  border-color: #D8AE55;
+}
