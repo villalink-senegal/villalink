@@ -504,3 +504,71 @@ input[type="submit"]:hover {
   color: #071D36;
   border-color: #D8AE55;
 }
+
+/* VILLALINK — CARTES PUBLIQUES BLEU NUIT & OR */
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E6D8B8;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(7, 29, 54, 0.08);
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(7, 29, 54, 0.14);
+}
+
+.card-img {
+  position: relative;
+  background-color: #E8EDF2;
+}
+
+.card-img .badge {
+  background: #D8AE55;
+  color: #071D36;
+  font-weight: 800;
+}
+
+.card-img .city-badge {
+  background: #071D36;
+  color: #FFFFFF;
+  border: 1px solid rgba(216, 174, 85, 0.7);
+}
+
+.card-body h3 {
+  color: #071D36;
+}
+
+.card-body .meta {
+  color: #65758A;
+}
+
+.card-body .amenities span {
+  background: #F7F6F2;
+  color: #071D36;
+  border: 1px solid #E6D8B8;
+}
+
+.card-body .price {
+  display: block;
+  color: #9A7225;
+  font-size: 22px;
+  font-weight: 800;
+  margin: 12px 0;
+}
+
+.card-bottom .btn.primary {
+  background: #D8AE55;
+  color: #071D36;
+  border-color: #D8AE55;
+}
+
+.card-bottom .btn.outline {
+  background: #071D36;
+  color: #FFFFFF;
+  border-color: #071D36;
+}
