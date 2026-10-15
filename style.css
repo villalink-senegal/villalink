@@ -457,3 +457,24 @@ a {
   border-radius: 10px;
 }
 
+/* BOUTONS — STYLE OR & BLEU NUIT */
+
+button,
+.btn,
+input[type="submit"] {
+  background-color: #D8AE55;
+  color: #071D36;
+  border: 1px solid #D8AE55;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover,
+.btn:hover,
+input[type="submit"]:hover {
+  background-color: #F1D58B;
+  border-color: #F1D58B;
+  color: #071D36;
+}
+
