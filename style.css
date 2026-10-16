@@ -596,3 +596,13 @@ input[type="submit"]:hover {
     height: 55px;
   }
 }
+
+
+/* LOGO VILLALINK DANS LE PIED DE PAGE */
+footer .logo-image {
+  display: block;
+  width: 190px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
