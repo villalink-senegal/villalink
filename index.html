@@ -174,19 +174,19 @@
 <button type="button" class="role" data-role="admin">🛡️ Admin</button>
   </div>
 
+
 <form id="authForm" class="auth-form">
-  <label>
+  <label id="authNameLabel" hidden>
     Nom complet
     <input
       id="authName"
       name="name"
-      placeholder="Ex. Abdoulaye Lam"
-      required
+      placeholder="Votre nom complet"
     >
   </label>
 
   <label>
-    Email
+    Adresse e-mail
     <input
       id="email"
       name="email"
@@ -202,16 +202,17 @@
       id="password"
       name="password"
       type="password"
-      placeholder="••••••••"
+      placeholder="Votre mot de passe"
       minlength="6"
       required
     >
   </label>
-<button type="button" id="forgotPasswordBtn">
-  Mot de passe oublié ?
-</button>
 
-  <div class="form-group">
+  <button type="button" id="forgotPasswordBtn">
+    Mot de passe oublié ?
+  </button>
+
+  <div class="form-group" id="authRoleGroup" hidden>
     <label for="authRoleSelect">Je suis :</label>
     <select id="authRoleSelect" name="role">
       <option value="locataire">Locataire</option>
@@ -219,14 +220,11 @@
     </select>
   </div>
 
-  <button
-    class="btn primary"
-    type="submit"
-    id="authSubmit"
-  >
-    Créer mon compte
+  <button class="btn primary" type="submit" id="authSubmit">
+    Se connecter
   </button>
 </form>
+
   
 <form id="resetPasswordForm" class="auth-form" hidden>
   <h3>Créer un nouveau mot de passe</h3>
