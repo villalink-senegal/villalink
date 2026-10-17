@@ -606,5 +606,10 @@ footer .logo-image {
   height: auto;
   object-fit: contain;
 }
-.eyebrow { color: #D4AF37; }
-.hero-title span { color: #D4AF37; }
+.hero .eyebrow {
+  color: #D4AF37 !important;
+}
+
+.hero h1 span {
+  color: #D4AF37 !important;
+}
