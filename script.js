@@ -1238,44 +1238,59 @@ let authRole = "locataire";
 // MISE À JOUR AUTH
 // ===============================
 
+
 function updateAuth() {
   if (!authTitle || !authSubmit) return;
 
-  const signup =
-    authMode === "signup";
+  const signup = authMode === "signup";
 
-  authTitle.textContent =
-    signup
-      ? "Créer un compte"
-      : "Se connecter";
+  authTitle.textContent = signup
+    ? "Créer un compte"
+    : "Se connecter";
 
-  authSubmit.textContent =
-    signup
-      ? "Créer mon compte"
-      : "Se connecter";
+  authSubmit.textContent = signup
+    ? "Créer mon compte"
+    : "Se connecter";
+
+  const nameLabel =
+    document.getElementById("authNameLabel");
 
   const nameField =
-    document.getElementById("authName") ||
-    document.getElementById("name");
+    document.getElementById("authName");
+
+  const roleGroup =
+    document.getElementById("authRoleGroup");
+
+  const roleSwitch =
+    document.querySelector(".role-switch");
+
+  const forgotButton =
+    document.getElementById("forgotPasswordBtn");
+
+  if (nameLabel) {
+    nameLabel.hidden = !signup;
+  }
 
   if (nameField) {
-    const container =
-      nameField.closest(".form-group") ||
-      nameField.parentElement;
-
-    if (container) {
-      container.style.display =
-        signup ? "" : "none";
-    }
-
     nameField.required = signup;
   }
 
+  if (roleGroup) {
+    roleGroup.hidden = !signup;
+  }
+
+  if (roleSwitch) {
+    roleSwitch.hidden = !signup;
+  }
+
+  if (forgotButton) {
+    forgotButton.hidden = signup;
+  }
+
   if (authToggle) {
-    authToggle.textContent =
-      signup
-        ? "Déjà un compte ? Se connecter"
-        : "Pas encore de compte ? Créer un compte";
+    authToggle.textContent = signup
+      ? "J’ai déjà un compte → Se connecter"
+      : "Pas encore de compte ? Créer un compte";
   }
 }
 
