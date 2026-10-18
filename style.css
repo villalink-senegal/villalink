@@ -617,3 +617,11 @@ footer .logo-image {
 .hero h1 span {
   color: #D4AF37 !important;
 }
+
+/* Taille du logo dans la fenêtre de connexion */
+.auth-brand .logo-image {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
