@@ -326,6 +326,10 @@
   padding: 10px 14px;
   box-sizing: border-box;
 }
+/* Masquer correctement les formulaires désactivés */
+.auth-form[hidden] {
+  display: none !important;
+}
 
 /* Bouton d'administration VillaLink */
 #adminBtn {
