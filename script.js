@@ -1423,6 +1423,10 @@ forgotPasswordBtn?.addEventListener("click", async () => {
  // ===== RÉINITIALISATION DU MOT DE PASSE =====
 
 const resetPasswordForm = document.getElementById("resetPasswordForm");
+if (resetPasswordForm) {
+  resetPasswordForm.hidden = true;
+}
+
 const resetAuthForm = document.getElementById("authForm");
 const resetPasswordMessage = document.getElementById("resetPasswordMessage");
 
