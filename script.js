@@ -539,6 +539,110 @@ function openVilla(id) {
 </a>
 
   `;
+   
+modalContent
+  .querySelector("#openBookingForm")
+  ?.addEventListener("click", () => {
+    const bookingBox = document.createElement("div");
+
+    bookingBox.id = "bookingForm";
+    bookingBox.style.cssText =
+      "margin-top:20px;padding:18px;border:1px solid var(--line);border-radius:14px";
+
+    bookingBox.innerHTML = `
+      <h3>Réserver cette villa</h3>
+
+      <label for="bookingStart">Date d'arrivée</label>
+      <input
+        id="bookingStart"
+        type="date"
+        required
+        style="display:block;width:100%;margin:8px 0 16px;padding:12px"
+      >
+
+      <label for="bookingEnd">Date de départ</label>
+      <input
+        id="bookingEnd"
+        type="date"
+        required
+        style="display:block;width:100%;margin:8px 0 16px;padding:12px"
+      >
+
+      <p id="bookingNights">Choisissez vos dates.</p>
+      <p id="bookingTotal" class="modal-price"></p>
+
+      <button
+        type="button"
+        id="sendBookingRequest"
+        class="btn btn-primary"
+        disabled
+      >
+        Envoyer ma demande
+      </button>
+
+      <p id="bookingMessage" role="status"></p>
+    `;
+
+    modalContent.appendChild(bookingBox);
+
+    const start = bookingBox.querySelector("#bookingStart");
+    const end = bookingBox.querySelector("#bookingEnd");
+    const nightsText = bookingBox.querySelector("#bookingNights");
+    const totalText = bookingBox.querySelector("#bookingTotal");
+    const sendButton = bookingBox.querySelector("#sendBookingRequest");
+
+    const today = new Date();
+    const todayString =
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    start.min = todayString;
+    end.min = todayString;
+
+    function calculateBooking() {
+      end.min = start.value || todayString;
+
+      const startDate = new Date(start.value + "T00:00:00");
+      const endDate = new Date(end.value + "T00:00:00");
+
+      const nights =
+        Math.round((endDate - startDate) / 86400000);
+
+      const nightlyPrice = Number(villa.price);
+
+      if (
+        !start.value ||
+        !end.value ||
+        nights <= 0 ||
+        !Number.isFinite(nightlyPrice) ||
+        nightlyPrice < 0
+      ) {
+        nightsText.textContent =
+          "Choisissez une date de départ après l'arrivée.";
+        totalText.textContent = "";
+        sendButton.disabled = true;
+        return;
+      }
+
+      const total = nights * nightlyPrice;
+
+      nightsText.textContent =
+        `${nights} nuit${nights > 1 ? "s" : ""}`;
+
+      totalText.textContent =
+        `Total estimé : ${total.toLocaleString("fr-FR")} FCFA`;
+
+      sendButton.disabled = false;
+    }
+
+    start.addEventListener("change", calculateBooking);
+    end.addEventListener("change", calculateBooking);
+
+    sendButton.addEventListener("click", () => {
+      bookingBox.querySelector("#bookingMessage").textContent =
+        "Le calcul est prêt. La prochaine étape est de connecter cette demande à Supabase et de vérifier la disponibilité.";
+    });
+  });
+
 
   let current = 0;
 
