@@ -327,12 +327,17 @@ function render(list = allVillas()) {
           </button>
 
          
-         ${
+         
+${
   villa.phone
     ? `
-      <span style="font-size:13px;color:var(--muted)">
-        Propriétaire joignable
-      </span>
+      <button
+        type="button"
+        class="btn primary"
+        data-view="${villa.id}"
+      >
+        Réserver cette villa
+      </button>
     `
     : `
       <p style="margin:0;padding:12px;border-radius:12px;background:#fff3cd;color:#856404">
@@ -340,6 +345,7 @@ function render(list = allVillas()) {
       </p>
     `
 }
+
 
         </div>
       </div>
