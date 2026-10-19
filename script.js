@@ -326,34 +326,21 @@ function render(list = allVillas()) {
             Voir détails
           </button>
 
+         
          ${
   villa.phone
     ? `
-     
-<button
-  type="button"
-  id="openBookingForm"
-  class="btn primary"
-  style="display:inline-block;margin-top:16px"
->
-  Réserver cette villa
-</button>
-
+      <span style="font-size:13px;color:var(--muted)">
+        Propriétaire joignable
+      </span>
     `
     : `
-      <p
-        style="
-          margin:0;
-          padding:12px;
-          border-radius:12px;
-          background:#fff3cd;
-          color:#856404;
-        "
-      >
-        ⚠️ Aucun numéro WhatsApp renseigné.
+      <p style="margin:0;padding:12px;border-radius:12px;background:#fff3cd;color:#856404">
+        ⚠️ Aucun numéro de téléphone renseigné.
       </p>
     `
 }
+
         </div>
       </div>
     `;
