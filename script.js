@@ -522,21 +522,16 @@ function openVilla(id) {
 </div>
 
 
-<a
-  href="https://wa.me/${String(
-    villa.ownerPhone || ""
-  ).replace(/\D/g, "")}?text=${encodeURIComponent(
-    "Bonjour, je suis intéressé(e) par " +
-    villa.title +
-    " sur VillaLink."
-  )}"
-  target="_blank"
-  rel="noopener noreferrer"
+
+<button
+  type="button"
+  id="openBookingForm"
   class="btn btn-primary"
-  style="display:inline-block;margin-top:16px;text-decoration:none"
+  style="display:inline-block;margin-top:16px"
 >
-  Contacter le propriétaire
-</a>
+  Réserver cette villa
+</button>
+
 
   `;
    
