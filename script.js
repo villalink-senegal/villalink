@@ -329,18 +329,16 @@ function render(list = allVillas()) {
          ${
   villa.phone
     ? `
-      <a
-        class="btn primary"
-        target="_blank"
-        rel="noopener"
-        href="https://wa.me/${safe(villa.phone)}?text=${encodeURIComponent(
-          "Bonjour, je suis intéressé(e) par " +
-          villa.title +
-          " sur VillaLink."
-        )}"
-      >
-        💬 Contacter sur WhatsApp
-      </a>
+     
+<button
+  type="button"
+  id="openBookingForm"
+  class="btn primary"
+  style="display:inline-block;margin-top:16px"
+>
+  Réserver cette villa
+</button>
+
     `
     : `
       <p
