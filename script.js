@@ -526,6 +526,7 @@ function openVilla(id) {
 
   `;
    
+
 const bookingButton = modalContent.querySelector("#openBookingForm");
 
 if (bookingButton) {
@@ -556,6 +557,10 @@ if (bookingButton) {
       <p id="bookingNights">Choisissez vos dates.</p>
       <p id="bookingTotal" class="modal-price"></p>
 
+      <button type="button" id="confirmBooking" class="btn primary">
+        Confirmer la réservation
+      </button>
+
       <p id="bookingMessage" role="status"></p>
     `;
 
@@ -565,6 +570,8 @@ if (bookingButton) {
     const end = bookingBox.querySelector("#bookingEnd");
     const nightsText = bookingBox.querySelector("#bookingNights");
     const totalText = bookingBox.querySelector("#bookingTotal");
+    const confirmButton = bookingBox.querySelector("#confirmBooking");
+    const message = bookingBox.querySelector("#bookingMessage");
 
     const today = new Date();
     const todayString = [
@@ -582,7 +589,7 @@ if (bookingButton) {
       if (!start.value || !end.value) {
         nightsText.textContent = "Choisissez les dates d'arrivée et de départ.";
         totalText.textContent = "";
-        return;
+        return null;
       }
 
       const startDate = new Date(start.value + "T00:00:00");
@@ -590,21 +597,186 @@ if (bookingButton) {
       const nights = Math.round((endDate - startDate) / 86400000);
       const nightlyPrice = Number(villa.price);
 
-      if (nights <= 0 || !Number.isFinite(nightlyPrice) || nightlyPrice < 0) {
-        nightsText.textContent = "La date de départ doit être après l'arrivée.";
+      if (
+        nights <= 0 ||
+        start.value < todayString ||
+        !Number.isFinite(nightlyPrice) ||
+        nightlyPrice <= 0
+      ) {
+        nightsText.textContent =
+          "Vérifiez les dates et le prix de cette villa.";
         totalText.textContent = "";
-        return;
+        return null;
       }
 
-      nightsText.textContent = `${nights} nuit${nights > 1 ? "s" : ""}`;
+      const total = nights * nightlyPrice;
+
+      nightsText.textContent =
+        `${nights} nuit${nights > 1 ? "s" : ""}`;
+
       totalText.textContent =
-        `Total estimé : ${(nights * nightlyPrice).toLocaleString("fr-FR")} FCFA`;
+        `Total estimé : ${total.toLocaleString("fr-FR")} FCFA`;
+
+      return { nights, nightlyPrice, total };
     }
 
     start.addEventListener("change", calculateBooking);
     end.addEventListener("change", calculateBooking);
 
-    bookingBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    confirmButton.addEventListener("click", async () => {
+      message.textContent = "";
+
+      const session = getSession();
+      const booking = calculateBooking();
+
+      if (!session?.id) {
+        message.textContent =
+          "Connectez-vous à votre compte pour réserver.";
+        return;
+      }
+
+      if (!booking) {
+        message.textContent =
+          "Choisissez des dates d'arrivée et de départ valides.";
+        return;
+      }
+
+      // Les villas prédéfinies ont des IDs numériques.
+      // Une réservation exige un véritable UUID Supabase.
+      const uuidPattern =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+      if (!uuidPattern.test(String(villa.id))) {
+        message.textContent =
+          "Cette villa prédéfinie n'est pas encore enregistrée dans Supabase. Choisissez une villa publiée depuis Supabase.";
+        return;
+      }
+
+      confirmButton.disabled = true;
+      confirmButton.textContent = "Enregistrement…";
+
+      try {
+        const client = window.supabaseClient;
+
+        if (!client) {
+          throw new Error("Connexion à Supabase indisponible.");
+        }
+
+        const {
+          data: { user },
+          error: userError
+        } = await client.auth.getUser();
+
+        if (userError) throw userError;
+
+        if (!user || user.id !== session.id) {
+          throw new Error(
+            "Votre session a expiré. Reconnectez-vous puis réessayez."
+          );
+        }
+
+        if (user.id === villa.owner_id) {
+          throw new Error(
+            "Vous ne pouvez pas réserver votre propre villa."
+          );
+        }
+
+        // Recharger la villa depuis la base pour vérifier
+        // son propriétaire, son statut et son prix actuel.
+        const { data: villaDB, error: villaError } = await client
+          .from("villas")
+          .select("id, owner_id, price, status")
+          .eq("id", villa.id)
+          .eq("status", "validee")
+          .maybeSingle();
+
+        if (villaError) throw villaError;
+
+        if (!villaDB) {
+          throw new Error(
+            "Cette villa n'est pas disponible à la réservation."
+          );
+        }
+
+        if (Number(villaDB.price) !== booking.nightlyPrice) {
+          throw new Error(
+            "Le prix de cette villa a changé. Fermez les détails et rouvrez la villa avant de réserver."
+          );
+        }
+
+        const { data: profile, error: profileError } = await client
+          .from("profiles")
+          .select("id, role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        if (!profile || profile.role !== "locataire") {
+          throw new Error(
+            "La réservation est réservée aux comptes locataires. Vérifiez le rôle de votre compte."
+          );
+        }
+
+        // Vérifier les chevauchements avec les réservations
+        // en attente ou confirmées. RLS limite les résultats visibles ;
+        // cette vérification côté navigateur ne remplace pas un contrôle serveur.
+        const { data: existingBookings, error: availabilityError } =
+          await client
+            .from("bookings")
+            .select("id")
+            .eq("villa_id", villaDB.id)
+            .in("status", ["pending", "confirmed"])
+            .lt("start_date", end.value)
+            .gt("end_date", start.value);
+
+        if (availabilityError) throw availabilityError;
+
+        if (existingBookings && existingBookings.length > 0) {
+          throw new Error(
+            "Ces dates semblent déjà réservées. Choisissez d'autres dates."
+          );
+        }
+
+        const { error: insertError } = await client
+          .from("bookings")
+          .insert({
+            villa_id: villaDB.id,
+            tenant_id: user.id,
+            owner_id: villaDB.owner_id,
+            start_date: start.value,
+            end_date: end.value,
+            nightly_price: villaDB.price,
+            total_amount: booking.total,
+            status: "pending"
+          });
+
+        if (insertError) throw insertError;
+
+        message.textContent =
+          "Demande de réservation enregistrée ! Elle est en attente de traitement.";
+
+        confirmButton.textContent = "Réservation enregistrée";
+      } catch (error) {
+        console.error("Erreur de réservation :", error);
+
+        message.textContent =
+          "Impossible d'enregistrer la réservation : " +
+          (error.message || "erreur inconnue");
+      } finally {
+        if (
+          confirmButton.textContent !== "Réservation enregistrée"
+        ) {
+          confirmButton.disabled = false;
+          confirmButton.textContent = "Confirmer la réservation";
+        }
+      }
+    });
+
+    bookingBox.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest"
+    });
   });
 }
 
