@@ -625,3 +625,86 @@ footer .logo-image {
   object-fit: contain;
   flex-shrink: 0;
 }
+/* =====================================
+   VILLALINK — EN-TÊTE ET MENU MOBILE
+   Thème bleu nuit et doré
+===================================== */
+
+:root {
+  --navy: #102a43;
+  --gold: #D4AF37;
+}
+
+/* Boutons de l'en-tête */
+.header-actions .btn,
+header .btn,
+.header-actions button {
+  color: var(--gold) !important;
+  background-color: var(--navy) !important;
+  border: 1px solid var(--gold) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Bouton principal */
+.header-actions .btn.primary,
+header .btn.primary {
+  color: var(--navy) !important;
+  background-color: var(--gold) !important;
+  border-color: var(--gold) !important;
+}
+
+/* Menu mobile : les trois traits */
+.menu-toggle,
+.mobile-menu-toggle,
+.hamburger,
+#menuToggle,
+#mobileMenuToggle {
+  color: var(--gold) !important;
+  background-color: var(--navy) !important;
+  border: 1px solid var(--gold) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Traits du menu */
+.menu-toggle span,
+.mobile-menu-toggle span,
+.hamburger span,
+#menuToggle span,
+#mobileMenuToggle span {
+  background-color: var(--gold) !important;
+}
+
+/* Éviter que les boutons soient coupés */
+.header-actions {
+  align-items: center;
+}
+
+header,
+header .container,
+.navbar {
+  overflow: visible;
+}
+
+/* Ajustements pour les petits écrans */
+@media (max-width: 768px) {
+  .header-actions .btn,
+  header .btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .menu-toggle,
+  .mobile-menu-toggle,
+  .hamburger,
+  #menuToggle,
+  #mobileMenuToggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    min-height: 42px;
+    flex-shrink: 0;
+  }
+}
