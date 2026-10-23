@@ -1373,45 +1373,68 @@ ownerForm?.addEventListener(
         );
       }
 
-      const villas = getCustom();
+     
       const editingId = event.target.dataset.editingId;
 
-      const villa = {
-        id: editingId ? Number(editingId) : Date.now(),
-        status: "attente",
+      const villaData = {
+        owner_id: session.id,
         title: data.title || "Nouvelle villa",
         location: data.location || "",
         price: Number(data.price || 0),
-        rooms: Number(data.rooms || 0),
+        rooms: Math.max(1, Number(data.rooms || 1)),
         phone: String(data.phone || "").replace(/\D/g, ""),
-        image: images[0],
-        images,
-        videos,
+        photos: images,
+        videos: videos,
         description: data.description || "",
-        amenities: amenities.length ? amenities : ["Nouvelle annonce"],
-        ownerEmail: session.email,
-        ownerName: session.name || ""
+        status: "attente"
       };
 
-      if (editingId) {
-        const index = villas.findIndex(
-          item =>
-            Number(item.id) === Number(editingId) &&
-            String(item.ownerEmail).toLowerCase() ===
-              String(session.email).toLowerCase()
-        );
+      let result;
 
-        if (index < 0) {
-          throw new Error("Annonce introuvable pour ce compte.");
+      if (editingId) {
+        const { data: updatedVilla, error } =
+          await window.supabaseClient
+            .from("villas")
+            .update({
+              title: villaData.title,
+              location: villaData.location,
+              price: villaData.price,
+              rooms: villaData.rooms,
+              phone: villaData.phone,
+              photos: villaData.photos,
+              videos: villaData.videos,
+              description: villaData.description
+            })
+            .eq("id", editingId)
+            .eq("owner_id", session.id)
+            .eq("status", "attente")
+            .select()
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!updatedVilla) {
+          throw new Error(
+            "Villa introuvable ou modification non autorisée. Vérifie que l'annonce est en attente."
+          );
         }
 
-        villa.id = villas[index].id;
-        villas[index] = villa;
+        result = updatedVilla;
       } else {
-        villas.push(villa);
+        const { data: newVilla, error } =
+          await window.supabaseClient
+            .from("villas")
+            .insert(villaData)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        result = newVilla;
       }
 
-      saveCustom(villas);
+      console.log("Villa enregistrée dans Supabase :", result);
+
 
       delete event.target.dataset.editingId;
       event.target.reset();
