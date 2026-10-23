@@ -153,14 +153,59 @@ function saveCustom(villas) {
   );
 }
 
+
+let publishedSupabaseVillas = [];
+
+async function loadPublishedVillas() {
+  const client = window.supabaseClient;
+
+  if (!client) {
+    console.error("Connexion à Supabase indisponible.");
+    return;
+  }
+
+  const { data, error } = await client
+    .from("villas")
+    .select("id, owner_id, title, location, price, rooms, phone, description, photos, videos, status")
+    .eq("status", "validee");
+
+  if (error) {
+    console.error("Impossible de charger les villas :", error);
+    return;
+  }
+
+  publishedSupabaseVillas = (data || []).map(row => ({
+    id: row.id,
+    owner_id: row.owner_id,
+    title: row.title,
+    location: row.location,
+    price: Number(row.price),
+    rooms: row.rooms,
+    phone: row.phone || "",
+    description: row.description || "",
+    images: Array.isArray(row.photos) ? row.photos : [],
+    image: row.photos?.[0] || "",
+    videos: Array.isArray(row.videos) ? row.videos : [],
+    amenities: [],
+    status: row.status
+  }));
+
+  render();
+}
+
 function allVillas() {
   return [
     ...DEFAULT_VILLAS,
     ...getCustom().filter(
-      villa => villa.status !== "attente" && villa.status !== "refuse"
-    )
+      villa =>
+        villa.status !== "attente" &&
+        villa.status !== "refuse" &&
+        villa.status !== "refusee"
+    ),
+    ...publishedSupabaseVillas
   ];
 }
+
 
 // ===============================
 // ÉLÉMENTS
@@ -3132,7 +3177,8 @@ function restoreSession() {
   }
 }
 
-// ===============================
+
+ // ===============================
 // INITIALISATION
 // ===============================
 
@@ -3141,6 +3187,9 @@ updateOwnerPreview();
 render();
 restoreSession();
 
+loadPublishedVillas();
+
 console.log(
   "✅ VillaLink chargé correctement."
 );
+
