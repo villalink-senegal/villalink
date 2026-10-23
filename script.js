@@ -422,10 +422,16 @@ ${
 function openVilla(id) {
   const session = getSession();
 
-  const villasDisponibles =
-    session?.role === "admin"
-      ? [...DEFAULT_VILLAS, ...getCustom()]
-      : allVillas();
+  
+const villasDisponibles =
+  session?.role === "admin"
+    ? [
+        ...DEFAULT_VILLAS,
+        ...getCustom(),
+        ...adminSupabaseVillas
+      ]
+    : allVillas();
+
 
     const villa = villasDisponibles.find(
     item => String(item.id) === String(id)
