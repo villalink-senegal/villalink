@@ -752,3 +752,34 @@ header .container,
     flex-wrap: wrap;
   }
 }
+
+/* ===== VISIBILITÉ DU MENU VILLALINK ===== */
+
+@media (max-width: 768px) {
+  nav a,
+  nav a:link,
+  nav a:visited {
+    color: #102a43 !important;
+    background-color: transparent !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    text-decoration: none;
+  }
+
+  nav a:hover,
+  nav a:focus {
+    color: #D4AF37 !important;
+    background-color: #102a43 !important;
+  }
+
+  nav a,
+  nav .header-actions {
+    position: relative;
+    z-index: 10002;
+  }
+
+  nav {
+    background-color: #ffffff !important;
+  }
+}
+
