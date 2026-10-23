@@ -2473,38 +2473,112 @@ function editVilla(id) {
 // ADMINISTRATION
 // ===============================
 
+
 let adminFilter = "toutes";
 let adminSearch = "";
+let adminSupabaseVillas = [];
 
-function showAdmin() {
+function mapAdminVilla(row) {
+  return {
+    id: row.id,
+    owner_id: row.owner_id,
+    title: row.title || "Villa sans titre",
+    location: row.location || "",
+    price: Number(row.price || 0),
+    rooms: row.rooms || 0,
+    phone: row.phone || "",
+    description: row.description || "",
+    images: Array.isArray(row.photos) ? row.photos : [],
+    image: row.photos?.[0] || "",
+    videos: Array.isArray(row.videos) ? row.videos : [],
+    amenities: [],
+    status: row.status,
+    ownerName: "Propriétaire",
+    ownerEmail: ""
+  };
+}
+
+async function showAdmin() {
   const session = getSession();
+  const client = window.supabaseClient;
 
-  if (
-    !session ||
-    session.role !== "admin"
-  ) {
+  if (!session || session.role !== "admin") {
+    alert("Accès réservé à l’administrateur.");
+    return;
+  }
+
+  if (!client) {
+    alert("Connexion à Supabase indisponible.");
+    return;
+  }
+
+  if (adminGrid) {
+    adminGrid.innerHTML = `
+      <div class="empty">
+        <h3>Chargement des annonces...</h3>
+      </div>
+    `;
+  }
+
+  adminPanel?.classList.remove("hidden");
+
+  const { data, error } = await client.rpc(
+    "admin_list_villas"
+  );
+
+  if (error) {
+    console.error(
+      "Erreur de chargement des annonces :",
+      error
+    );
+
+    if (adminGrid) {
+      adminGrid.innerHTML = `
+        <div class="empty">
+          <h3>Impossible de charger les annonces</h3>
+          <p>Vérifie la connexion à Supabase.</p>
+        </div>
+      `;
+    }
+
     alert(
-      "Accès réservé à l’administrateur."
+      "Erreur lors du chargement des annonces. Consulte la console."
     );
     return;
   }
 
-  const villas = getCustom();
+  adminSupabaseVillas = (data || []).map(
+    mapAdminVilla
+  );
 
-  const waiting =
-    villas.filter(
-      v => v.status === "attente"
-    ).length;
+  const localVillas = getCustom();
 
-  const published =
-    villas.filter(
-      v => v.status === "publie"
-    ).length;
+  const villas = [
+    ...adminSupabaseVillas,
+    ...localVillas.filter(
+      local =>
+        !adminSupabaseVillas.some(
+          remote =>
+            String(remote.id) === String(local.id)
+        )
+    )
+  ];
 
-  const refused =
-    villas.filter(
-      v => v.status === "refuse"
-    ).length;
+  const waiting = villas.filter(
+    villa => villa.status === "attente"
+  ).length;
+
+  const published = villas.filter(
+    villa =>
+      villa.status === "validee" ||
+      villa.status === "publie"
+  ).length;
+
+  const refused = villas.filter(
+    villa =>
+      villa.status === "refusee" ||
+      villa.status === "refuse"
+  ).length;
 
   if (adminStats) {
     adminStats.innerHTML = `
@@ -2530,240 +2604,232 @@ function showAdmin() {
     `;
   }
 
-  const search =
-    adminSearch
-      .trim()
+  const search = adminSearch.trim().toLowerCase();
+
+  const selectedStatus =
+    adminFilter === "publie"
+      ? "validee"
+      : adminFilter === "refuse"
+      ? "refusee"
+      : adminFilter;
+
+  const filtered = villas.filter(villa => {
+    const statusOK =
+      selectedStatus === "toutes" ||
+      villa.status === selectedStatus;
+
+    const text = [
+      villa.title,
+      villa.location,
+      villa.ownerName,
+      villa.ownerEmail,
+      villa.owner_id
+    ]
+      .join(" ")
       .toLowerCase();
 
-  const filtered =
-    villas.filter(villa => {
-      const statusOK =
-        adminFilter === "toutes" ||
-        villa.status === adminFilter;
+    return statusOK &&
+      (!search || text.includes(search));
+  });
 
-      const text =
-        [
-          villa.title,
-          villa.location,
-          villa.ownerName,
-          villa.ownerEmail
-        ]
-          .join(" ")
-          .toLowerCase();
+  if (!adminGrid) return;
 
-      return (
-        statusOK &&
-        (!search ||
-          text.includes(search))
-      );
-    });
+  adminGrid.innerHTML = filtered.length
+    ? filtered.map(villa => {
+        const isPublished =
+          villa.status === "validee" ||
+          villa.status === "publie";
 
-  if (adminGrid) {
-    adminGrid.innerHTML =
-      filtered.length
-        ? filtered.map(villa => `
+        const isRefused =
+          villa.status === "refusee" ||
+          villa.status === "refuse";
+
+        const statusLabel = isPublished
+          ? "🟢 Publiée"
+          : isRefused
+          ? "🔴 Refusée"
+          : "🟠 En attente";
+
+        const image = villa.image || "";
+
+        return `
           <article class="admin-card">
-
             <div
               class="admin-img"
-              style="background-image:url('${safe(
-                villa.image
-              )}')"
+              style="background-image:url('${safe(image)}')"
             ></div>
 
             <div class="admin-body">
-
               <div class="eyebrow">
                 ${safe(villa.location)}
-                ·
-                ${
-                  villa.status === "publie"
-                    ? "🟢 Publiée"
-                    : villa.status === "refuse"
-                    ? "🔴 Refusée"
-                    : "🟠 En attente"
-                }
+                · ${statusLabel}
               </div>
 
-              <h4>
-                ${safe(villa.title)}
-              </h4>
+              <h4>${safe(villa.title)}</h4>
 
               <p>
-                👤 ${safe(
-                  villa.ownerName ||
-                  "Propriétaire"
-                )}
-              </p>
-
-              <p>
-                ✉️ ${safe(
-                  villa.ownerEmail ||
-                  "Email non renseigné"
-                )}
+                👤 ${safe(villa.ownerName || "Propriétaire")}
               </p>
 
               <p>
                 🛏 ${safe(villa.rooms)}
-                chambres ·
-                ${price(villa.price)}
+                chambres · ${price(villa.price)}
               </p>
 
               <div class="admin-actions">
-
                 <button
+                  type="button"
                   class="btn outline"
-                  data-admin-view="${villa.id}"
+                  data-admin-view="${safe(villa.id)}"
                 >
                   Voir
                 </button>
 
-               ${
-  villa.status === "attente"
-    ? `
-      <button
-        class="btn primary"
-        data-admin-approve="${villa.id}"
-      >
-        ✓ Accepter
-      </button>
+                ${
+                  villa.status === "attente" ||
+                  isRefused
+                    ? `
+                      <button
+                        type="button"
+                        class="btn primary"
+                        data-admin-approve="${safe(villa.id)}"
+                      >
+                        ${isRefused ? "↻ Republier" : "✓ Accepter"}
+                      </button>
+                    `
+                    : ""
+                }
 
-      <button
-        class="btn danger"
-        data-admin-refuse="${villa.id}"
-      >
-        ✕ Refuser
-      </button>
-    `
-    : villa.status === "refuse"
-    ? `
-      <button
-        class="btn primary"
-        data-admin-approve="${villa.id}"
-      >
-        ↻ Republier
-      </button>
-    `
-    : ""
-}
+                ${
+                  villa.status === "attente"
+                    ? `
+                      <button
+                        type="button"
+                        class="btn danger"
+                        data-admin-refuse="${safe(villa.id)}"
+                      >
+                        ✕ Refuser
+                      </button>
+                    `
+                    : ""
+                }
 
                 <button
+                  type="button"
                   class="btn danger"
-                  data-admin-delete="${villa.id}"
+                  data-admin-delete="${safe(villa.id)}"
                 >
                   🗑️ Supprimer
                 </button>
-
               </div>
-
             </div>
           </article>
-        `).join("")
-        : `
-          <div class="empty">
-            <h3>Aucune annonce trouvée</h3>
-          </div>
         `;
+      }).join("")
+    : `
+      <div class="empty">
+        <h3>Aucune annonce trouvée</h3>
+      </div>
+    `;
 
-    adminGrid
-      .querySelectorAll("[data-admin-view]")
-      .forEach(button => {
-        button.onclick = () =>
-          openVilla(
-            Number(
-              button.dataset.adminView
-            )
-          );
-      });
+  adminGrid
+    .querySelectorAll("[data-admin-view]")
+    .forEach(button => {
+      button.onclick = () => {
+        openVilla(button.dataset.adminView);
+      };
+    });
 
-    adminGrid
-      .querySelectorAll("[data-admin-approve]")
-      .forEach(button => {
-        button.onclick = () =>
-          adminSetStatus(
-            Number(
-              button.dataset.adminApprove
-            ),
-            "publie"
-          );
-      });
+  adminGrid
+    .querySelectorAll("[data-admin-approve]")
+    .forEach(button => {
+      button.onclick = () => {
+        adminSetStatus(
+          button.dataset.adminApprove,
+          "validee"
+        );
+      };
+    });
 
-    adminGrid
-      .querySelectorAll("[data-admin-refuse]")
-      .forEach(button => {
-        button.onclick = () =>
-          adminSetStatus(
-            Number(
-              button.dataset.adminRefuse
-            ),
-            "refuse"
-          );
-      });
+  adminGrid
+    .querySelectorAll("[data-admin-refuse]")
+    .forEach(button => {
+      button.onclick = () => {
+        adminSetStatus(
+          button.dataset.adminRefuse,
+          "refusee"
+        );
+      };
+    });
 
-    adminGrid
-      .querySelectorAll("[data-admin-delete]")
-      .forEach(button => {
-        button.onclick = () =>
-          adminDelete(
-            Number(
-              button.dataset.adminDelete
-            )
-          );
-      });
-  }
-
-  adminPanel?.classList.remove(
-    "hidden"
-  );
+  adminGrid
+    .querySelectorAll("[data-admin-delete]")
+    .forEach(button => {
+      button.onclick = () => {
+        adminDelete(button.dataset.adminDelete);
+      };
+    });
 
   adminPanel?.scrollIntoView({
     behavior: "smooth"
   });
 }
 
-function adminSetStatus(id, status) {
+async function adminSetStatus(id, status) {
   const session = getSession();
+  const client = window.supabaseClient;
 
-  if (session?.role !== "admin") return;
+  if (session?.role !== "admin" || !client) {
+    alert("Accès réservé à l’administrateur.");
+    return;
+  }
 
-  const villas = getCustom();
+  const { error } = await client.rpc(
+    "admin_set_villa_status",
+    {
+      p_villa_id: id,
+      p_status: status
+    }
+  );
 
-  const villa =
-    villas.find(
-      item =>
-        Number(item.id) === Number(id)
+  if (error) {
+    console.error(
+      "Erreur de modification du statut :",
+      error
     );
+    alert("Impossible de modifier cette annonce.");
+    return;
+  }
 
-  if (!villa) return;
-
-  villa.status = status;
-
-  saveCustom(villas);
-
-  render();
-  showAdmin();
+  await loadPublishedVillas();
+  await showAdmin();
 
   alert(
-    status === "publie"
+    status === "validee"
       ? "✅ Annonce acceptée et publiée !"
       : "🔴 Annonce refusée."
   );
 }
 
-function adminDelete(id) {
+async function adminDelete(id) {
   const session = getSession();
+  const client = window.supabaseClient;
 
-  if (session?.role !== "admin") return;
+  if (session?.role !== "admin" || !client) {
+    alert("Accès réservé à l’administrateur.");
+    return;
+  }
 
-  const villas = getCustom();
+  const villa = adminSupabaseVillas.find(
+    item => String(item.id) === String(id)
+  );
 
-  const villa =
-    villas.find(
-      item =>
-        Number(item.id) === Number(id)
+  if (!villa) {
+    alert(
+      "Cette annonce n’est pas dans Supabase. Elle ne peut pas être supprimée avec cette fonction."
     );
-
-  if (!villa) return;
+    return;
+  }
 
   if (
     !confirm(
@@ -2773,34 +2839,38 @@ function adminDelete(id) {
     return;
   }
 
-  saveCustom(
-    villas.filter(
-      item =>
-        Number(item.id) !== Number(id)
-    )
+  const { error } = await client.rpc(
+    "admin_delete_villa",
+    {
+      p_villa_id: id
+    }
   );
 
-  render();
-  showAdmin();
+  if (error) {
+    console.error(
+      "Erreur de suppression :",
+      error
+    );
+    alert("Impossible de supprimer cette annonce.");
+    return;
+  }
+
+  await loadPublishedVillas();
+  await showAdmin();
+
+  alert("Annonce supprimée.");
 }
 
 document
   .getElementById("adminBtn")
-  ?.addEventListener(
-    "click",
-    showAdmin
-  );
+  ?.addEventListener("click", showAdmin);
 
 document
   .getElementById("closeAdmin")
-  ?.addEventListener(
-    "click",
-    () => {
-      adminPanel?.classList.add(
-        "hidden"
-      );
-    }
-  );
+  ?.addEventListener("click", () => {
+    adminPanel?.classList.add("hidden");
+  });
+
 
 // ===============================
 // FAVORIS - ESPACE
