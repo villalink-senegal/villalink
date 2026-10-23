@@ -382,10 +382,9 @@ function openVilla(id) {
       ? [...DEFAULT_VILLAS, ...getCustom()]
       : allVillas();
 
-  const villa = villasDisponibles.find(
-    item => Number(item.id) === Number(id)
+    const villa = villasDisponibles.find(
+    item => String(item.id) === String(id)
   );
-
   if (!villa || !modalContent || !villaModal) return;
 
   if (!villa || !modalContent || !villaModal) return;
