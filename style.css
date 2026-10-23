@@ -783,3 +783,34 @@ header .container,
   }
 }
 
+/* ===== MENU MOBILE VILLALINK : CONTRASTE ===== */
+
+@media (max-width: 768px) {
+  header nav {
+    background: #102a43 !important;
+    color: #D4AF37 !important;
+    opacity: 1 !important;
+  }
+
+  header nav a,
+  header nav a:link,
+  header nav a:visited {
+    color: #D4AF37 !important;
+    background: transparent !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    text-shadow: none !important;
+    font-weight: 600 !important;
+  }
+
+  header nav a:hover,
+  header nav a:focus {
+    color: #102a43 !important;
+    background: #D4AF37 !important;
+  }
+
+  header nav .header-actions {
+    background: #102a43 !important;
+  }
+}
+
