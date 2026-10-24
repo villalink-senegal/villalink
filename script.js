@@ -2182,12 +2182,11 @@ if (statsBox) {
   myVillasGrid
     .querySelectorAll("[data-my-villa]")
     .forEach(button => {
-      button.onclick = () =>
-        openVilla(
-          Number(
-            button.dataset.myVilla
-          )
-        );
+      
+button.onclick = () => {
+  openVilla(button.dataset.view);
+};
+
     });
 
   myVillasGrid
