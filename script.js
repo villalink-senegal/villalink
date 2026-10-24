@@ -401,7 +401,9 @@ ${
 
   grid.querySelectorAll("[data-view]").forEach(button => {
     button.onclick = () => {
-      openVilla(Number(button.dataset.view));
+      
+openVilla(button.dataset.view);
+
     };
   });
 
