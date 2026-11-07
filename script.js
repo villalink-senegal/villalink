@@ -799,7 +799,6 @@ if (bookingButton) {
             start_date: start.value,
             end_date: end.value,
             nightly_price: villaDB.price,
-            total_amount: booking.total,
             status: "pending"
           });
 
