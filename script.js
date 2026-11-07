@@ -1831,45 +1831,49 @@ const role = ["locataire", "proprietaire"].includes(roleSelect?.value)
    authSubmit && (authSubmit.disabled = true);
 
    try {
-     // INSCRIPTION
-     if (authMode === "signup") {
-       const { data, error } =
-         await window.supabaseClient.auth.signUp({
-           email,
-           password,
-           options: {
-             data: {
-               full_name: name || "Utilisateur",
-               role
-             }
-           }
-         });
+    
+// INSCRIPTION
+if (authMode === "signup") {
+  const { data, error } =
+    await window.supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo:
+          "https://villalink-senegal.github.io/villalink/",
 
-       if (error) throw error;
+        data: {
+          full_name: name || "Utilisateur",
+          role
+        }
+      }
+    });
 
-       if (!data.session) {
-         alert(
-           "Compte créé ! Consultez votre boîte mail pour confirmer votre adresse, puis connectez-vous."
-         );
-         return;
-       }
+  if (error) throw error;
 
-       const session = {
-         id: data.user.id,
-         name: name || "Utilisateur",
-         email: data.user.email,
-         role
-       };
+  if (!data.session) {
+    alert(
+      "Compte créé ! Consultez votre boîte mail pour confirmer votre adresse, puis connectez-vous."
+    );
+    return;
+  }
 
-       localStorage.setItem(
-         "villalink_session",
-         JSON.stringify(session)
-       );
+  const session = {
+    id: data.user.id,
+    name: name || "Utilisateur",
+    email: data.user.email,
+    role
+  };
 
-       authModal?.classList.add("hidden");
-       showDashboard(session);
-       return;
-     }
+  localStorage.setItem(
+    "villalink_session",
+    JSON.stringify(session)
+  );
+
+  authModal?.classList.add("hidden");
+  showDashboard(session);
+  return;
+}
 
      // CONNEXION
      const { data, error } =
