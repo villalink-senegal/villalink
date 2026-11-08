@@ -2433,6 +2433,56 @@ async function showOwnerBookings() {
     `;
   }
 }
+
+// ===============================
+// RÉPONDRE À UNE RÉSERVATION
+// ===============================
+
+async function ownerRespondToBooking(bookingId, status) {
+  const client = window.supabaseClient;
+
+  if (!client) {
+    alert("Connexion à Supabase indisponible.");
+    return;
+  }
+
+  if (!["confirmed", "rejected"].includes(status)) {
+    alert("Statut invalide.");
+    return;
+  }
+
+  try {
+    const { error } = await client.rpc(
+      "owner_respond_booking",
+      {
+        p_booking_id: bookingId,
+        p_status: status
+      }
+    );
+
+    if (error) throw error;
+
+    alert(
+      status === "confirmed"
+        ? "Réservation acceptée avec succès !"
+        : "Réservation refusée."
+    );
+
+    await showOwnerBookings();
+
+  } catch (error) {
+    console.error(
+      "Erreur réponse réservation :",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Impossible de traiter cette réservation."
+    );
+  }
+}
+
 // Bouton MES VILLAS
 document
   .getElementById("myVillasBtn")
