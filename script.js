@@ -2185,14 +2185,12 @@ if (statsBox) {
     `).join("");
 
   myVillasGrid
-    .querySelectorAll("[data-my-villa]")
-    .forEach(button => {
-      
-button.onclick = () => {
-  openVilla(button.dataset.view);
-};
-
-    });
+  .querySelectorAll("[data-my-villa]")
+  .forEach(button => {
+    button.onclick = () => {
+      openVilla(button.dataset.myVilla);
+    };
+  });
 
   myVillasGrid
     .querySelectorAll("[data-delete-villa]")
@@ -2224,9 +2222,6 @@ button.onclick = () => {
     behavior: "smooth"
   });
 }
-
-document
-  .getElementById("myVillasBtn")
    
 // ===============================
 // MES RÉSERVATIONS PROPRIÉTAIRE
@@ -2438,12 +2433,24 @@ async function showOwnerBookings() {
     `;
   }
 }
+// Bouton MES VILLAS
+document
+  .getElementById("myVillasBtn")
+  ?.addEventListener("click", showMyVillas);
 
-?.addEventListener(
-    "click",
-    showMyVillas
-  );
+// Bouton MES RÉSERVATIONS
+document
+  .getElementById("ownerBookingsBtn")
+  ?.addEventListener("click", showOwnerBookings);
 
+// Bouton MASQUER LES RÉSERVATIONS
+document
+  .getElementById("closeOwnerBookings")
+  ?.addEventListener("click", () => {
+    document
+      .getElementById("ownerBookingsPanel")
+      ?.classList.add("hidden");
+  });
 function deleteMyVilla(id) {
   const session = getSession();
 
