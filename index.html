@@ -107,6 +107,14 @@
       <p>Consultez et gérez vos annonces publiées.</p>
       <button class="btn primary" id="myVillasBtn">Voir mes villas</button>
     </div>
+    <div class="dashboard-card owner-only">
+  <div class="dashboard-icon">📅</div>
+  <h3>Mes réservations</h3>
+  <p>Consultez les demandes et gérez les réservations de vos villas.</p>
+  <button class="btn primary" id="ownerBookingsBtn">
+    Voir mes réservations
+  </button>
+</div>
     <div class="dashboard-card">
       <div class="dashboard-icon">❤️</div>
       <h3>Mes favoris</h3>
@@ -131,6 +139,31 @@
     <div id="ownerStats" class="owner-stats"></div>
     <div id="myVillasGrid" class="my-villas-grid"></div>
   </div>
+  <!-- ===============================
+     MES RÉSERVATIONS
+================================ -->
+
+<div id="ownerBookingsPanel"
+     class="my-villas-panel hidden">
+
+  <div class="my-villas-heading">
+    <div>
+      <div class="eyebrow">GESTION LOCATIVE</div>
+      <h3>Mes réservations</h3>
+    </div>
+
+    <button class="btn outline"
+            id="closeOwnerBookings">
+      Masquer
+    </button>
+  </div>
+
+  <div id="ownerBookingsList"
+       class="my-villas-grid">
+    <p>Chargement des réservations...</p>
+  </div>
+
+</div>
   <div id="adminPanel" class="my-villas-panel hidden">
     <div class="my-villas-heading">
       <div>
