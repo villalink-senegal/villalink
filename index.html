@@ -107,14 +107,15 @@
       <p>Consultez et gérez vos annonces publiées.</p>
       <button class="btn primary" id="myVillasBtn">Voir mes villas</button>
     </div>
-    <div class="dashboard-card owner-only">
-  <div class="dashboard-icon">📅</div>
-  <h3>Mes réservations</h3>
-  <p>Consultez les demandes et gérez les réservations de vos villas.</p>
-  <button class="btn primary" id="ownerBookingsBtn">
-    Voir mes réservations
-  </button>
-</div>
+        <!-- RÉSERVATIONS DU LOCATAIRE -->
+    <div class="dashboard-card tenant-only">
+      <div class="dashboard-icon">📅</div>
+      <h3>Mes réservations</h3>
+      <p>Suivez vos demandes et consultez les réponses des propriétaires.</p>
+      <button class="btn primary" id="tenantBookingsBtn">
+        Suivre mes réservations
+      </button>
+    </div>
     <div class="dashboard-card">
       <div class="dashboard-icon">❤️</div>
       <h3>Mes favoris</h3>
@@ -142,7 +143,14 @@
   <!-- ===============================
      MES RÉSERVATIONS
 ================================ -->
-
+<div class="dashboard-card tenant-only">
+  <div class="dashboard-icon">📅</div>
+  <h3>Mes réservations</h3>
+  <p>Suivez vos demandes et consultez les réponses des propriétaires.</p>
+  <button class="btn primary" id="tenantBookingsBtn">
+    Suivre mes réservations
+  </button>
+</div>
 <div id="ownerBookingsPanel"
      class="my-villas-panel hidden">
 
@@ -164,7 +172,30 @@
   </div>
 
 </div>
-  <div id="adminPanel" class="my-villas-panel hidden">
+
+<!-- ===============================
+     SUIVI DES RÉSERVATIONS LOCATAIRE
+================================ -->
+<div id="tenantBookingsPanel" class="my-villas-panel hidden">
+
+  <div class="my-villas-heading">
+    <div>
+      <div class="eyebrow">ESPACE LOCATAIRE</div>
+      <h3>Mes réservations</h3>
+    </div>
+
+    <button class="btn outline" id="closeTenantBookings">
+      Masquer
+    </button>
+  </div>
+
+  <div id="tenantBookingsList" class="my-villas-grid">
+    <p>Chargement de vos réservations...</p>
+  </div>
+
+</div>
+
+<div id="adminPanel" class="my-villas-panel hidden">
     <div class="my-villas-heading">
       <div>
         <div class="eyebrow">ADMINISTRATION</div>
