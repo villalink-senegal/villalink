@@ -2439,66 +2439,7 @@ async function showOwnerBookings() {
   }
 }
 
-// ===============================
-// RÉPONDRE À UNE RÉSERVATION
-// ===============================
-
-async function ownerRespondToBooking(id, status) {
-  const client = window.supabaseClient;
-
-  const action =
-    status === "confirmed"
-      ? "accepter"
-      : "refuser";
-
-  if (!confirm(
-    `Voulez-vous vraiment ${action} cette réservation ?`
-  )) return;
-
-  try {
-    const { error } = await client.rpc(
-      "owner_respond_booking",
-      {
-        p_booking_id: id,
-        p_status: status
-      }
-    );
-
-    if (error) throw error;
-
-    alert(
-      status === "confirmed"
-        ? "Réservation acceptée !"
-        : "Réservation refusée."
-    );
-
-    await showOwnerBookings();
-
-  } catch (error) {
-    console.error("Erreur réponse réservation :", error);
-
-    alert(
-      "Impossible de traiter la réservation : " +
-      (error.message || "Erreur inconnue")
-    );
-  }
-}
-
-// Bouton du tableau de bord
-document
-  .getElementById("ownerBookingsBtn")
-  ?.addEventListener("click", showOwnerBookings);
-
-// Bouton Masquer
-document
-  .getElementById("closeOwnerBookings")
-  ?.addEventListener("click", () => {
-    document
-      .getElementById("ownerBookingsPanel")
-      ?.classList.add("hidden");
-  });
-
-  ?.addEventListener(
+?.addEventListener(
     "click",
     showMyVillas
   );
