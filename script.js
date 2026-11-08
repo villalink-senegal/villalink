@@ -2227,6 +2227,277 @@ button.onclick = () => {
 
 document
   .getElementById("myVillasBtn")
+   
+// ===============================
+// MES RÉSERVATIONS PROPRIÉTAIRE
+// ===============================
+
+async function showOwnerBookings() {
+  const session = getSession();
+  const client = window.supabaseClient;
+
+  const panel = document.getElementById(
+    "ownerBookingsPanel"
+  );
+
+  const list = document.getElementById(
+    "ownerBookingsList"
+  );
+
+  if (
+    !session ||
+    session.role !== "proprietaire"
+  ) {
+    alert("Cette section est réservée aux propriétaires.");
+    return;
+  }
+
+  if (!panel || !list || !client) return;
+
+  panel.classList.remove("hidden");
+  list.innerHTML = "<p>Chargement des réservations...</p>";
+
+  panel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+  try {
+    // Récupérer les réservations du propriétaire
+    const { data: bookings, error } = await client
+      .from("bookings")
+      .select(`
+        id,
+        villa_id,
+        tenant_id,
+        start_date,
+        end_date,
+        nightly_price,
+        total_amount,
+        owner_amount,
+        status,
+        created_at
+      `)
+      .eq("owner_id", session.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    if (!bookings || bookings.length === 0) {
+      list.innerHTML = `
+        <div class="empty">
+          <h3>Aucune réservation pour le moment</h3>
+          <p>Les demandes concernant vos villas apparaîtront ici.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Récupérer les profils des locataires
+    const tenantIds = [
+      ...new Set(bookings.map(b => b.tenant_id))
+    ];
+
+    const { data: tenants, error: tenantError } =
+      await client
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", tenantIds);
+
+    if (tenantError) throw tenantError;
+
+    // Récupérer les noms des villas
+    const villaIds = [
+      ...new Set(bookings.map(b => b.villa_id))
+    ];
+
+    const { data: villas, error: villaError } =
+      await client
+        .from("villas")
+        .select("id, title, location")
+        .in("id", villaIds);
+
+    if (villaError) throw villaError;
+
+    const tenantMap = Object.fromEntries(
+      (tenants || []).map(t => [t.id, t])
+    );
+
+    const villaMap = Object.fromEntries(
+      (villas || []).map(v => [v.id, v])
+    );
+
+    list.innerHTML = bookings.map(booking => {
+      const tenant = tenantMap[booking.tenant_id];
+      const villa = villaMap[booking.villa_id];
+
+      const statusLabels = {
+        pending: "🟠 En attente",
+        confirmed: "🟢 Confirmée",
+        rejected: "🔴 Refusée"
+      };
+
+      const startDate = new Date(
+        booking.start_date + "T00:00:00"
+      ).toLocaleDateString("fr-FR");
+
+      const endDate = new Date(
+        booking.end_date + "T00:00:00"
+      ).toLocaleDateString("fr-FR");
+
+      return `
+        <article class="my-villa-card">
+          <div class="my-villa-body">
+
+            <div class="eyebrow">
+              ${safe(villa?.location || "Villa")}
+            </div>
+
+            <h3>
+              ${safe(villa?.title || "Villa")}
+            </h3>
+
+            <p>
+              <strong>Locataire :</strong>
+              ${safe(tenant?.full_name || "Utilisateur")}
+            </p>
+
+            <p>
+              <strong>Arrivée :</strong> ${startDate}
+            </p>
+
+            <p>
+              <strong>Départ :</strong> ${endDate}
+            </p>
+
+            <p>
+              <strong>Prix total :</strong>
+              ${price(Number(booking.total_amount))}
+            </p>
+
+            <p>
+              <strong>Votre montant :</strong>
+              ${price(Number(booking.owner_amount))}
+            </p>
+
+            <div class="listing-status">
+              ${statusLabels[booking.status] || safe(booking.status)}
+            </div>
+
+            ${
+              booking.status === "pending"
+                ? `
+                  <div class="my-villa-actions">
+                    <button
+                      type="button"
+                      class="btn primary"
+                      data-booking-action="confirmed"
+                      data-booking-id="${booking.id}">
+                      Accepter
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn danger"
+                      data-booking-action="rejected"
+                      data-booking-id="${booking.id}">
+                      Refuser
+                    </button>
+                  </div>
+                `
+                : ""
+            }
+
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    // Connecter les boutons de réponse
+    list.querySelectorAll("[data-booking-action]")
+      .forEach(button => {
+        button.addEventListener("click", async () => {
+          await ownerRespondToBooking(
+            button.dataset.bookingId,
+            button.dataset.bookingAction
+          );
+        });
+      });
+
+  } catch (error) {
+    console.error(
+      "Erreur chargement réservations :",
+      error
+    );
+
+    list.innerHTML = `
+      <div class="empty">
+        <h3>Impossible de charger les réservations</h3>
+        <p>${safe(error.message || "Erreur inconnue")}</p>
+      </div>
+    `;
+  }
+}
+
+// ===============================
+// RÉPONDRE À UNE RÉSERVATION
+// ===============================
+
+async function ownerRespondToBooking(id, status) {
+  const client = window.supabaseClient;
+
+  const action =
+    status === "confirmed"
+      ? "accepter"
+      : "refuser";
+
+  if (!confirm(
+    `Voulez-vous vraiment ${action} cette réservation ?`
+  )) return;
+
+  try {
+    const { error } = await client.rpc(
+      "owner_respond_booking",
+      {
+        p_booking_id: id,
+        p_status: status
+      }
+    );
+
+    if (error) throw error;
+
+    alert(
+      status === "confirmed"
+        ? "Réservation acceptée !"
+        : "Réservation refusée."
+    );
+
+    await showOwnerBookings();
+
+  } catch (error) {
+    console.error("Erreur réponse réservation :", error);
+
+    alert(
+      "Impossible de traiter la réservation : " +
+      (error.message || "Erreur inconnue")
+    );
+  }
+}
+
+// Bouton du tableau de bord
+document
+  .getElementById("ownerBookingsBtn")
+  ?.addEventListener("click", showOwnerBookings);
+
+// Bouton Masquer
+document
+  .getElementById("closeOwnerBookings")
+  ?.addEventListener("click", () => {
+    document
+      .getElementById("ownerBookingsPanel")
+      ?.classList.add("hidden");
+  });
+
   ?.addEventListener(
     "click",
     showMyVillas
