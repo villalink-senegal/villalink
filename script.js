@@ -2293,11 +2293,15 @@ async function showOwnerBookings() {
       ...new Set(bookings.map(b => b.tenant_id))
     ];
 
-    const { data: tenants, error: tenantError } =
-      await client
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", tenantIds);
+   const { data: tenants, error: tenantError } =
+  await client
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", tenantIds);
+
+console.log("RÉSERVATIONS :", bookings);
+console.log("PROFILS LOCATAIRES :", tenants);
+console.log("ERREUR PROFILS :", tenantError);
 
     if (tenantError) throw tenantError;
 
