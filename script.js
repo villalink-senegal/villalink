@@ -2435,6 +2435,155 @@ async function showOwnerBookings() {
 }
 
 // ===============================
+// MES RÉSERVATIONS LOCATAIRE
+// ===============================
+
+async function showTenantBookings() {
+  const session = getSession();
+  const client = window.supabaseClient;
+
+  const panel = document.getElementById("tenantBookingsPanel");
+  const list = document.getElementById("tenantBookingsList");
+
+  if (!session || session.role !== "locataire") {
+    alert("Cette section est réservée aux locataires.");
+    return;
+  }
+
+  if (!panel || !list || !client) return;
+
+  panel.classList.remove("hidden");
+  list.innerHTML = "<p>Chargement de vos réservations...</p>";
+
+  panel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+  try {
+    const { data: bookings, error } = await client
+      .from("bookings")
+      .select(`
+        id,
+        villa_id,
+        start_date,
+        end_date,
+        nightly_price,
+        total_amount,
+        status,
+        created_at
+      `)
+      .eq("tenant_id", session.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    if (!bookings || bookings.length === 0) {
+      list.innerHTML = `
+        <div class="empty">
+          <h3>Aucune réservation pour le moment</h3>
+          <p>Vos demandes de réservation apparaîtront ici.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const villaIds = [
+      ...new Set(bookings.map(b => b.villa_id))
+    ];
+
+    const { data: villas, error: villaError } = await client
+      .from("villas")
+      .select("id, title, location")
+      .in("id", villaIds);
+
+    if (villaError) throw villaError;
+
+    const villaMap = Object.fromEntries(
+      (villas || []).map(v => [v.id, v])
+    );
+
+    const statusInfo = {
+      pending: {
+        label: "🟠 En attente",
+        message: "Votre demande attend la réponse du propriétaire."
+      },
+      confirmed: {
+        label: "🟢 Confirmée",
+        message: "Bonne nouvelle ! Votre réservation est acceptée."
+      },
+      rejected: {
+        label: "🔴 Refusée",
+        message: "Le propriétaire a refusé cette demande."
+      },
+      cancelled: {
+        label: "⚪ Annulée",
+        message: "Cette réservation a été annulée."
+      },
+      completed: {
+        label: "✔️ Terminée",
+        message: "Cette réservation est terminée."
+      }
+    };
+
+    list.innerHTML = bookings.map(booking => {
+      const villa = villaMap[booking.villa_id];
+      const status = statusInfo[booking.status] || {
+        label: safe(booking.status),
+        message: ""
+      };
+
+      const startDate = new Date(
+        booking.start_date + "T00:00:00"
+      ).toLocaleDateString("fr-FR");
+
+      const endDate = new Date(
+        booking.end_date + "T00:00:00"
+      ).toLocaleDateString("fr-FR");
+
+      return `
+        <article class="my-villa-card">
+          <div class="my-villa-body">
+
+            <div class="eyebrow">
+              ${safe(villa?.location || "Villa")}
+            </div>
+
+            <h3>${safe(villa?.title || "Villa")}</h3>
+
+            <p><strong>Arrivée :</strong> ${startDate}</p>
+
+            <p><strong>Départ :</strong> ${endDate}</p>
+
+            <p>
+              <strong>Prix total :</strong>
+              ${price(Number(booking.total_amount))}
+            </p>
+
+            <div class="listing-status">
+              ${status.label}
+            </div>
+
+            <p>${status.message}</p>
+
+          </div>
+        </article>
+      `;
+    }).join("");
+
+  } catch (error) {
+    console.error("Erreur réservations locataire :", error);
+
+    list.innerHTML = `
+      <div class="empty">
+        <h3>Impossible de charger vos réservations</h3>
+        <p>${safe(error.message || "Erreur inconnue")}</p>
+      </div>
+    `;
+  }
+}
+
+// ===============================
 // RÉPONDRE À UNE RÉSERVATION
 // ===============================
 
@@ -3537,6 +3686,24 @@ render();
 restoreSession();
 
 loadPublishedVillas();
+// ===============================
+// BOUTONS DES RÉSERVATIONS
+// ===============================
+
+// Réservations locataire
+document.getElementById("tenantBookingsBtn")
+  ?.addEventListener("click", showTenantBookings);
+
+// Masquer réservations locataire
+document.getElementById("closeTenantBookings")
+  ?.addEventListener("click", () => {
+    document.getElementById("tenantBookingsPanel")
+      ?.classList.add("hidden");
+  });
+
+// Réservations propriétaire
+document.getElementById("ownerBookingsBtn")
+  ?.addEventListener("click", showOwnerBookings);
 
 console.log(
   "✅ VillaLink chargé correctement."
