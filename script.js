@@ -1080,6 +1080,7 @@ function compressImage(
   });
 }
 
+
 photoFiles?.addEventListener(
   "change",
   async () => {
@@ -1090,18 +1091,30 @@ photoFiles?.addEventListener(
     if (!files.length) return;
 
     const remaining =
-      5 - selectedPhotoDataList.length;
+      10 - selectedPhotoDataList.length;
 
     if (remaining <= 0) {
       alert(
-        "Vous pouvez ajouter jusqu'à 5 photos."
+        "Vous pouvez ajouter jusqu'à 10 photos."
       );
+      photoFiles.value = "";
       return;
+    }
+
+    if (files.length > remaining) {
+      alert(
+        `Vous pouvez encore ajouter ${remaining} photo(s) maximum.`
+      );
     }
 
     for (
       const file of files.slice(0, remaining)
     ) {
+      if (!file.type.startsWith("image/")) {
+        alert("Veuillez sélectionner une image.");
+        continue;
+      }
+
       const data =
         await compressImage(file);
 
@@ -1111,133 +1124,178 @@ photoFiles?.addEventListener(
         selectedPhotoData = data;
       }
 
-     const box =
-  document.createElement("div");
+      const box =
+        document.createElement("div");
 
-box.className = "photo-thumb";
+      box.className = "photo-thumb";
 
-box.innerHTML = `
-  <img
-    src="${data}"
-    alt="Photo de villa"
-  >
+      box.innerHTML = `
+        <img
+          src="${data}"
+          alt="Photo de villa"
+        >
 
-  <button
-    type="button"
-    class="remove-photo"
-    title="Supprimer cette photo"
-  >
-    🗑️
-  </button>
-`;
+        <button
+          type="button"
+          class="remove-photo"
+          title="Supprimer cette photo"
+        >
+          🗑️
+        </button>
+      `;
 
       photoPreview?.appendChild(box);
+
       box
-  .querySelector(".remove-photo")
-  ?.addEventListener("click", () => {
-    const index =
-      [...photoPreview.children].indexOf(box);
+        .querySelector(".remove-photo")
+        ?.addEventListener("click", () => {
+          const index =
+            [...photoPreview.children].indexOf(box);
 
-    if (index !== -1) {
-      selectedPhotoDataList.splice(index, 1);
+          if (index !== -1) {
+            selectedPhotoDataList.splice(index, 1);
+          }
+
+          selectedPhotoData =
+            selectedPhotoDataList[0] || "";
+
+          box.remove();
+
+          updateOwnerPreview();
+        });
     }
 
-    if (selectedPhotoDataList.length) {
-      selectedPhotoData =
-        selectedPhotoDataList[0];
-    } else {
-      selectedPhotoData = "";
-    }
-
-    box.remove();
-
-    updateOwnerPreview();
-  });
-    }
-
+    photoFiles.value = "";
     updateOwnerPreview();
   }
 );
+
+
 // ===============================
 // VIDÉOS PROPRIÉTAIRE
 // ===============================
 
+function getVideoDuration(file) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video");
+    const url = URL.createObjectURL(file);
+
+    video.preload = "metadata";
+
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+
+      URL.revokeObjectURL(url);
+
+      if (!Number.isFinite(duration)) {
+        reject(new Error("Durée de vidéo impossible à vérifier."));
+        return;
+      }
+
+      resolve(duration);
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Impossible de lire cette vidéo."));
+    };
+
+    video.src = url;
+  });
+}
+
 videoFiles?.addEventListener(
   "change",
-  () => {
-    const files = [
-      ...videoFiles.files
-    ];
+  async () => {
+    const files = [...videoFiles.files];
 
     if (!files.length) return;
 
     const remaining =
-      2 - selectedVideoDataList.length;
+      5 - selectedVideoDataList.length;
 
     if (remaining <= 0) {
-      alert(
-        "Vous pouvez ajouter jusqu'à 2 vidéos."
-      );
+      alert("Vous pouvez ajouter jusqu'à 5 vidéos.");
+      videoFiles.value = "";
       return;
     }
 
-    for (
-      const file of files.slice(0, remaining)
-    ) {
+    if (files.length > remaining) {
+      alert(`Vous pouvez encore ajouter ${remaining} vidéo(s) maximum.`);
+    }
+
+    for (const file of files.slice(0, remaining)) {
       if (!file.type.startsWith("video/")) {
+        alert("Veuillez sélectionner un fichier vidéo.");
         continue;
       }
 
-      const reader =
-        new FileReader();
+      try {
+        const duration = await getVideoDuration(file);
 
-      reader.onload = () => {
-        const data = reader.result;
+        if (duration > 60) {
+          alert("Chaque vidéo doit durer 1 minute maximum.");
+          continue;
+        }
 
-        selectedVideoDataList.push(data);
+        const reader = new FileReader();
 
-        const box =
-          document.createElement("div");
+        reader.onload = () => {
+          const data = reader.result;
 
-        box.className = "photo-thumb";
+          selectedVideoDataList.push(data);
 
-        box.innerHTML = `
-          <video
-            src="${data}"
-            controls
-            playsinline
-            style="width:100%;border-radius:12px;"
-          ></video>
+          const box = document.createElement("div");
+          box.className = "photo-thumb";
 
-          <button
-            type="button"
-            class="remove-video"
-            title="Supprimer cette vidéo"
-          >
-            🗑️
-          </button>
-        `;
+          box.innerHTML = `
+            <video
+              src="${data}"
+              controls
+              playsinline
+              style="width:100%;border-radius:12px;"
+            ></video>
 
-        videoPreview?.appendChild(box);
+            <button
+              type="button"
+              class="remove-video"
+              title="Supprimer cette vidéo"
+            >
+              🗑️
+            </button>
+          `;
 
-        box
-          .querySelector(".remove-video")
-          ?.addEventListener("click", () => {
-            const index =
-              [...videoPreview.children].indexOf(box);
+          videoPreview?.appendChild(box);
 
-            if (index !== -1) {
-              selectedVideoDataList.splice(index, 1);
-            }
+          box
+            .querySelector(".remove-video")
+            ?.addEventListener("click", () => {
+              const index =
+                [...videoPreview.children].indexOf(box);
 
-            box.remove();
-          });
-      };
+              if (index !== -1) {
+                selectedVideoDataList.splice(index, 1);
+              }
 
-      reader.readAsDataURL(file);
+              box.remove();
+            });
+        };
+
+        reader.onerror = () => {
+          alert("Impossible de charger cette vidéo.");
+        };
+
+        reader.readAsDataURL(file);
+
+      } catch (error) {
+        alert(error.message || "Impossible de vérifier cette vidéo.");
+      }
     }
+
+    videoFiles.value = "";
   }
 );
+
 
 async function uploadVillaMedia(dataUrl, category, index) {
   const session = getSession();
